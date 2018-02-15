@@ -1,7 +1,8 @@
-const kahoot = require('./kahoot.js/index.js');
+//const kahoot = require('./kahoot.js/index.js');
 const cluster = require('cluster');
 const cla = require('command-line-args');
 const ascii = require('cool-ascii-faces');
+const shortid = require('shortid');
 
 let flags = [
     { name: 'count', alias: 'c', type: Number },
@@ -29,11 +30,22 @@ cluster.setupMaster({
 });
 
 for(let i = 0; i < processCount; i++){
-    //console.log(`[INFO] Spawning process ${i}...`);
     let worker = cluster.fork();
     worker.send({ gamePin: gamePin, name: ascii() });
 }
 
 cluster.on('exit', (worker, code, sig) => {
     console.log(`[DIED] Worker ${worker.id} died...`);
+    if(code === 45){
+        console.log(`[HALT] Halting all workers...`);
+        process.exit(4);
+    }
+    if(code !== 5){
+        setTimeout(() => {
+            console.log(`[RESPAWN] Exit code was not 5, starting new worker...`);
+            let worker = cluster.fork();
+            worker.send({ gamePin: gamePin, name: shortid.generate() });
+        }, 2 * 2000);
+    }
+    
 });
