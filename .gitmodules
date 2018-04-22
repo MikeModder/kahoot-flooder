@@ -1,0 +1,3 @@
+[submodule "kahoot.js"]
+	path = kahoot.js
+	url = https://github.com/wwwg/kahoot.js
